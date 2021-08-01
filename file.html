@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+
+</head>
+<body>
+<script type="text/javascript" src="jquery.min.js"></script>
+
+<div>
+    <input type="file" id="files" style="display: none" onchange="fileImport();">
+    <input type="button" id="fileImport" value="导入">
+</div>
+<script>
+    var Host = "localhost";
+    var Domain = "localhost";
+</script>
+<!--<script type="text/javascript" src="./jquery.md5.js"></script>-->
+<script type="text/javascript" src="./fileSave.js"></script>
+
+<script>
+    //点击导入按钮,使files触发点击事件,然后完成读取文件的操作
+    $("#fileImport").click(function () {
+        $("#files").click();
+    });
+
+    function fileImport() {
+        //获取读取我文件的File对象
+        var selectedFile = document.getElementById('files').files[0];
+        var name = selectedFile.name;//读取选中文件的文件名
+        var size = selectedFile.size;//读取选中文件的大小
+        console.log("文件名:" + name + "大小:" + size);
+
+        var reader = new FileReader();//这是核心,读取操作就是由它完成.
+        reader.readAsText(selectedFile);//读取文件的内容,也可以读取文件的URL
+        reader.onload = function () {
+            //1
+            var reg = /_0x245f\('[1234567890abcdef]+', '[^']{1,6}'\)/g;
+            var matchArray = this.result.match(reg);
+            var tempResult = this.result;
+            for(let index = 0; index<matchArray.length; index++){
+                var tempMatchData = matchArray[index];
+                tempResult = tempResult.replace(tempMatchData,'\''+eval(tempMatchData)+'\'');
+            }
+            //2
+            reg = /'[^']{1,8}': '[^']{1,}'/g;
+            var canMatchData = true;
+            var matchTime = 0;
+            while (canMatchData && matchTime < 10) {
+                canMatchData = false;
+                matchTime++;
+                matchArray = tempResult.match(reg);
+                for (let index = 0; index < matchArray.length; index++) {
+                    var tempMatchData = matchArray[index];
+                    var splitData = tempMatchData.split("': '");
+                    var funReg = RegExp("_0x[1234567890abcdef]+\\[" + splitData[0] + "'\\]", "gm");
+                    var matchResult = tempResult.match(funReg);
+                    if (matchResult?.length > 0) {
+                        tempResult = tempResult.split(funReg).join("'" + splitData[1]);
+                        canMatchData = true;
+                    }
+                }
+            }
+            writeToFile(tempResult);
+        }
+    }
+
+    function writeToFile(result) {
+        var file = new File([result], "temp.decode.js", {type: "text/plain;charset=utf-8"});
+        saveAs(file);
+    }
+</script>
+</body>
+</html>
